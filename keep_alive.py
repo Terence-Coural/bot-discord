@@ -3,9 +3,9 @@ from threading import Thread
 
 app = Flask('')
 
-@app.route('/')
+@app.route('/online/')
 def home():
-    return "La secrétaire commence son service !"
+    return "La secrétaire est en ligne !"
 
 def run():
     app.run(host='0.0.0.0', port=8080)
