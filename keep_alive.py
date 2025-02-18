@@ -13,14 +13,3 @@ def run():
 def keep_alive():
     t = Thread(target=run)
     t.start()
-
-@app.route('/statuscake/')
-def home():
-    return "La secrétaire est en ligne pour Status Cake !"
-
-def run():
-    app.run(host='0.0.0.0', port=8080)
-
-def keep_alive():
-    t = Thread(target=run)
-    t.start()
