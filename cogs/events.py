@@ -55,6 +55,28 @@ class EventsCog(commands.Cog):
         )
         await associated_channel.send(embed=embed_msg)
 
+    # Sort a channel inside a category
+    async def sortAssociatedTextChannel(self, category: discord.CategoryChannel, channel: discord.TextChannel):
+        originList = category.text_channels
+        min_pos: int = originList[0].position
+        print(f'Min position = {min_pos}')
+        if len(originList) < 1:
+            print(f'No previous event')
+            return
+        else:
+            sorted_list = sorted(originList, key=lambda x: x.name)
+            print(f'Origin list : {originList}\n\n')
+            print(f'Sorted list : {sorted_list}\n\n')
+
+            # Get index of new position in sorted list
+            for index, sortedChannel in enumerate(sorted_list):
+                print(index, sortedChannel)
+                if sortedChannel.name == channel.name:
+                    new_pos_index = index
+                    print(f'New position is set to {new_pos_index}')
+
+            # Move channel to new position
+            await channel.move(beginning=True, offset=new_pos_index, category=category)
 
     #Create automatically a new text channel when a scheduled event is created
     @commands.Cog.listener()
@@ -71,6 +93,9 @@ class EventsCog(commands.Cog):
             topic=event.url,
             nsfw=True
         )
+
+        # Sort new channel in category
+        await self.sortAssociatedTextChannel(events_cat, new_channel)
 
         # Add a channel link into event description
         link_txt: str = f'\nPlus d\'infos : {new_channel.jump_url}'
@@ -127,10 +152,13 @@ class EventsCog(commands.Cog):
             # Check if title or start time date change
             if (before.name != after.name) | (before.start_time != after.start_time):
 
-                # Get old txt channel object & new text channel name
+                # Get old txt channel object, edit new text channel name & sort it in category
                 event_txt_channel: discord.TextChannel = self.associatedChannel(before)
                 new_txt_channel_name: str = self.associatedChannelName(after)
-                await event_txt_channel.edit(name=new_txt_channel_name)
+                events_cat = before.guild.get_channel(self.bot.events_channel_id)
+                modifiedChannel = await event_txt_channel.edit(name=new_txt_channel_name)
+                print(f'{modifiedChannel}\n\n')
+                await self.sortAssociatedTextChannel(events_cat, modifiedChannel)
 
                 # Get new txt channel & send it msg
                 await self.associatedChannelEmbedMsg(
