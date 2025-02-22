@@ -58,22 +58,15 @@ class EventsCog(commands.Cog):
     # Sort a channel inside a category
     async def sortAssociatedTextChannel(self, category: discord.CategoryChannel, channel: discord.TextChannel):
         originList = category.text_channels
-        min_pos: int = originList[0].position
-        print(f'Min position = {min_pos}')
         if len(originList) < 1:
-            print(f'No previous event')
             return
         else:
             sorted_list = sorted(originList, key=lambda x: x.name)
-            print(f'Origin list : {originList}\n\n')
-            print(f'Sorted list : {sorted_list}\n\n')
 
             # Get index of new position in sorted list
             for index, sortedChannel in enumerate(sorted_list):
-                print(index, sortedChannel)
                 if sortedChannel.name == channel.name:
                     new_pos_index = index
-                    print(f'New position is set to {new_pos_index}')
 
             # Move channel to new position
             await channel.move(beginning=True, offset=new_pos_index, category=category)
@@ -157,7 +150,6 @@ class EventsCog(commands.Cog):
                 new_txt_channel_name: str = self.associatedChannelName(after)
                 events_cat = before.guild.get_channel(self.bot.events_channel_id)
                 modifiedChannel = await event_txt_channel.edit(name=new_txt_channel_name)
-                print(f'{modifiedChannel}\n\n')
                 await self.sortAssociatedTextChannel(events_cat, modifiedChannel)
 
                 # Get new txt channel & send it msg
