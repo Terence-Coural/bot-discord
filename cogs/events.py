@@ -139,52 +139,58 @@ class EventsCog(commands.Cog):
     @commands.Cog.listener()
     async def on_scheduled_event_update(self, before: discord.ScheduledEvent, after: discord.ScheduledEvent):
 
-        # Event's title or date is modified
-        if (before.status == discord.EventStatus.scheduled) & (after.status == discord.EventStatus.scheduled):
-            
-            # Check if title or start time date change
-            if (before.name != after.name) | (before.start_time != after.start_time):
+        match before.status, after.status:
 
-                # Get old txt channel object, edit new text channel name & sort it in category
-                event_txt_channel: discord.TextChannel = self.associatedChannel(before)
-                new_txt_channel_name: str = self.associatedChannelName(after)
-                events_cat = before.guild.get_channel(self.bot.events_channel_id)
-                modifiedChannel = await event_txt_channel.edit(name=new_txt_channel_name)
-                await self.sortAssociatedTextChannel(events_cat, modifiedChannel)
+            # Event's title or date is modified
+            case discord.EventStatus.scheduled, discord.EventStatus.scheduled:
+                
+                # Check if title or start time date change
+                if (before.name != after.name) | (before.start_time != after.start_time):
 
-                # Get new txt channel & send it msg
+                    # Get old txt channel object, edit new text channel name & sort it in category
+                    event_txt_channel: discord.TextChannel = self.associatedChannel(before)
+                    new_txt_channel_name: str = self.associatedChannelName(after)
+                    events_cat = before.guild.get_channel(self.bot.events_channel_id)
+                    modifiedChannel = await event_txt_channel.edit(name=new_txt_channel_name)
+                    await self.sortAssociatedTextChannel(events_cat, modifiedChannel)
+
+                    # Get new txt channel & send it msg
+                    await self.associatedChannelEmbedMsg(
+                        event_txt_channel,
+                        f"Modification de l'événement {before.name}",
+                        f"L'événement {before.name} a été modifié {'en ' + after.name if before.name != after.name else ''}.\nVérifiez bien la date et l'heure de l'événement !",
+                        0x9b59b6 #purple
+                    )
+
+                    # Add log into logs channel defined
+                    logs_channel = before.guild.get_channel(self.bot.logs_channel_id)
+                    embed_log = discord.Embed(title="Modification d'un événement", color=0x9b59b6)
+                    embed_log.add_field(name="Événement", value=before.name, inline=False)
+                    embed_log.add_field(name="Lien du canal associé", value=event_txt_channel.jump_url, inline=False)
+                    await logs_channel.send(embed=embed_log)
+
+            # Event is ended
+            case discord.EventStatus.active, discord.EventStatus.ended:
+
+                # Get event associated text channel & send a msg
+                event_txt_channel = self.associatedChannel(before)
                 await self.associatedChannelEmbedMsg(
                     event_txt_channel,
-                    f"Modification de l'événement {before.name}",
-                    f"L'événement {before.name} a été modifié {'en ' + after.name if before.name != after.name else ''}.\nVérifiez bien la date et l'heure de l'événement !",
+                    f"Fin de l'événement {before.name}",
+                    f"L'événement {before.name} est fini !",
                     0x9b59b6 #purple
                 )
 
                 # Add log into logs channel defined
                 logs_channel = before.guild.get_channel(self.bot.logs_channel_id)
-                embed_log = discord.Embed(title="Modification d'un événement", color=0x9b59b6)
+                embed_log = discord.Embed(title="Fin d'un événement", color=0x9b59b6)
                 embed_log.add_field(name="Événement", value=before.name, inline=False)
                 embed_log.add_field(name="Lien du canal associé", value=event_txt_channel.jump_url, inline=False)
                 await logs_channel.send(embed=embed_log)
 
-        # Event is ended
-        elif (before.status == discord.EventStatus.active) & (after.status == discord.EventStatus.ended):
-
-            # Get event associated text channel & send a msg
-            event_txt_channel = self.associatedChannel(before)
-            await self.associatedChannelEmbedMsg(
-                event_txt_channel,
-                f"Fin de l'événement {before.name}",
-                f"L'événement {before.name} est fini !",
-                0x9b59b6 #purple
-            )
-
-            # Add log into logs channel defined
-            logs_channel = before.guild.get_channel(self.bot.logs_channel_id)
-            embed_log = discord.Embed(title="Fin d'un événement", color=0x9b59b6)
-            embed_log.add_field(name="Événement", value=before.name, inline=False)
-            embed_log.add_field(name="Lien du canal associé", value=event_txt_channel.jump_url, inline=False)
-            await logs_channel.send(embed=embed_log)
+            # No matching
+            case _:
+                print(f'ERROR: No matching status for your scheduled event')
 
 # Add cog to bot
 async def setup(bot):
