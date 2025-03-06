@@ -22,7 +22,7 @@ class EventsCog(commands.Cog):
             event: discord.ScheduledEvent
         ) -> int:
         event_desc = event.description
-        desc, infos, discord_url = event_desc.partition("\nPlus d'infos : ")
+        desc, infos, discord_url = event_desc.partition("Plus d'infos : ")
         path = urllib.parse.urlparse(discord_url).path
 
         # Split left URL sections (ex: /channels/XXXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXX)
