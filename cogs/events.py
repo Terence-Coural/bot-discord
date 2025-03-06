@@ -169,6 +169,22 @@ class EventsCog(commands.Cog):
                     embed_log.add_field(name="Lien du canal associé", value=event_txt_channel.jump_url, inline=False)
                     await logs_channel.send(embed=embed_log)
 
+            # Event begins
+            case discord.EventStatus.scheduled, discord.EventStatus.active:
+
+                #Bot connect to voice channel
+                if after.guild.voice_client:
+                    event_txt_channel = self.associatedChannel(before)
+                    await self.associatedChannelEmbedMsg(
+                        event_txt_channel,
+                        f"Impossible de se connecter au salon audio de l'événement {before.name}",
+                        f"Je m'occupe déjà d'un autre événement ! **RESTE connecté dans le canal audio, Esclave !!!**",
+                        0x9b59b6 #purple
+                    )
+
+                else:
+                    await after.channel.connect()
+
             # Event is ended
             case discord.EventStatus.active, discord.EventStatus.ended:
 
@@ -187,6 +203,10 @@ class EventsCog(commands.Cog):
                 embed_log.add_field(name="Événement", value=before.name, inline=False)
                 embed_log.add_field(name="Lien du canal associé", value=event_txt_channel.jump_url, inline=False)
                 await logs_channel.send(embed=embed_log)
+
+                # Bot disconnect from voice channel
+                if after.guild.voice_client:
+                    await after.guild.voice_client.disconnect()
 
             # No matching
             case _:
