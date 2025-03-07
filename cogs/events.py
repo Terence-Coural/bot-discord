@@ -205,7 +205,8 @@ class EventsCog(commands.Cog):
                 await logs_channel.send(embed=embed_log)
 
                 # Bot disconnect from voice channel
-                if after.guild.voice_client:
+                vc_channel = discord.utils.get(self.bot.voice_clients, channel=before.channel)
+                if vc_channel:
                     await after.guild.voice_client.disconnect()
 
             # No matching
