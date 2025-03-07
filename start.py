@@ -7,6 +7,7 @@ from keep_alive import keep_alive
 # Load env variables
 load_dotenv()
 token: str = os.getenv('DISCORD_TOKEN')
+current_env: int = os.getenv('CURRENT_ENV')
 logs_channel_id: int = os.getenv('LOGS_CHANNEL_ID')
 events_channel_id: int = os.getenv('EVENTS_CHANNEL_ID')
 
@@ -40,7 +41,8 @@ bot.events_channel_id = int(events_channel_id)
 
 def main():
     #Launch the bot
-    keep_alive()
+    if current_env == 'PROD':
+        keep_alive()
     bot.run(token=token)
 
 if __name__ == '__main__':
